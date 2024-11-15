@@ -125,3 +125,27 @@ prop.test(
   knitr::kable()
 ```
 
+```{r, warning=FALSE}
+city_test = homicide_df |>
+  mutate(prop_test = map2(unsolved_homicides, total_homicides, ~ prop.test(.x, .y) |>
+                            broom::tidy())) |>
+  unnest(prop_test) |>
+  select(city_state, total_homicides, unsolved_homicides, estimate, conf.low, conf.high)
+city_test
+```
+
+```{r}
+city_test |>
+  arrange(estimate) |>
+  mutate(city_state = factor(city_state, levels = city_state)) |>
+  ggplot(aes(x = city_state, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
+  coord_flip() +
+  labs(
+    title = "Proportion of unsolved homicides by city",
+    x = "city",
+    y = "proportion of unsolved homicides"
+  ) +
+  theme(axis.text.y = element_text(size = 6, hjust = 1))
+```
